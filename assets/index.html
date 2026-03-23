@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ネジ締め職人：究極のツライチ</title>
+    <style>
+        :root {
+            --board-color-top: #DEB887;
+            --board-color-front: #8B5A2B;
+            --screw-head: #cfcfcf;
+            --screw-thread: #9b9b9b;
+            --bg-color: #f4f1ea;
+        }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Hiragino Maru Gothic ProN', 'Rounded M+ 1c', 'Meiryo', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #app {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 900px;
+            background: linear-gradient(to bottom, #fdfbf7, #e0d9cc);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: background 1s ease;
+        }
+
+        /* --- Theme Styling --- */
+        /* Rank 1-10: Alubaito (Classic Wood) */
+        #app.theme-rank-1 { --bg-grad: linear-gradient(#fdfbf7, #e0d9cc); --board-top: #DEB887; --board-front: #8B5A2B; }
+        /* Rank 11-20: Apprentice (Building Site) */
+        #app.theme-rank-2 { --bg-grad: linear-gradient(#e0e0e0, #a0a0a0); --board-top: #c0c0c0; --board-front: #4a4a4a; }
+        /* Rank 21-30: Novice (Workshop) */
+        #app.theme-rank-3 { --bg-grad: linear-gradient(#f9f0ff, #d1c4e9); --board-top: #9575cd; --board-front: #4527a0; }
+        /* Rank 31-40: Full-fledged (Professional) */
+        #app.theme-rank-4 { --bg-grad: linear-gradient(#e8f5e9, #a5d6a7); --board-top: #66bb6a; --board-front: #1b5e20; }
+        /* Rank 41-50: Ace (Tech) */
+        #app.theme-rank-5 { --bg-grad: linear-gradient(#e1f5fe, #81d4fa); --board-top: #29b6f6; --board-front: #01579b; }
+        /* Rank 51-60: Supervisor (Leader) */
+        #app.theme-rank-6 { --bg-grad: linear-gradient(#fff3e0, #ffcc80); --board-top: #ffb74d; --board-front: #e65100; }
+        #app.theme-rank-6 .rank-badge { color: #e65100; }
+        /* Rank 61-70: Master (Tradition) */
+        #app.theme-rank-7 { --bg-grad: linear-gradient(#fce4ec, #f48fb1); --board-top: #f06292; --board-front: #880e4f; }
+        /* Rank 71-80: Precision (Storic) */
+        #app.theme-rank-8 { --bg-grad: linear-gradient(#fafafa, #bdbdbd); --board-top: #757575; --board-front: #212121; }
+        /* Rank 81-90: Magician (Divine) */
+        #app.theme-rank-9 { --bg-grad: linear-gradient(#fffde7, #fff59d); --board-top: #fff176; --board-front: #fbc02d; }
+        #app.theme-rank-9 .rank-badge { color: #fbc02d; text-shadow: 0 0 15px rgba(255,192,0,0.8); }
+        /* Rank 91-100: Legend (Ultimate) */
+        #app.theme-rank-10 { --bg-grad: linear-gradient(#4a148c, #000); --board-top: #9c27b0; --board-front: #311b92; }
+        #app.theme-rank-10 .rank-badge { color: #ea80fc; text-shadow: 0 0 20px #ea80fc; }
+        #app.theme-rank-10 { color: #fff; }
+
+        #app {
+            background: var(--bg-grad, linear-gradient(#fdfbf7, #e0d9cc));
+        }
+        #board-top-surface { background-color: var(--board-top) !important; }
+        #board-front { background-color: var(--board-front) !important; }
+
+        /* Stage Card Theme Adjustments */
+        .stage-card.theme-1 { border-color: #8B5A2B; }
+        .stage-card.theme-2 { border-color: #4a4a4a; box-shadow: 0 4px 0 #333; }
+        .stage-card.theme-3 { border-color: #4527a0; background: #ede7f6; }
+        .stage-card.theme-4 { border-color: #1b5e20; background: #e8f5e9; }
+        .stage-card.theme-5 { border-color: #01579b; background: #e1f5fe; }
+        .stage-card.theme-6 { border-color: #e65100; background: #fff3e0; }
+        .stage-card.theme-7 { border-color: #880e4f; background: #fce4ec; }
+        .stage-card.theme-8 { border-color: #212121; background: #f5f5f5; border-width: 3px; }
+        .stage-card.theme-9 { border-color: #fbc02d; background: #fffde7; box-shadow: 0 0 10px rgba(255,192,0,0.5); }
+        .stage-card.theme-10 { border-color: #ea80fc; background: #4a148c; color: #fff; box-shadow: 0 0 15px #ea80fc; }
+
+        /* Header UI */
+        #header-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .score-panel {
+            background: rgba(139, 90, 43, 0.9);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            border: 2px solid #5a3a1b;
+        }
+        .bgm-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 2px 12px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.4);
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+        .bgm-btn:active { transform: scale(0.9); }
+        .bgm-btn.muted { opacity: 0.5; background: rgba(0,0,0,0.3); }
+        .combo-panel {
+            background: rgba(255, 120, 0, 0.95);
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            border: 2px solid #cc6600;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .combo-panel.active {
+            opacity: 1;
+            transform: scale(1);
+            animation: pulse-combo 0.3s;
+        }
+        /* Crest Icon (匠) */
+        .crest {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            font-size: 13px;
+            font-weight: 900;
+            margin: 0 2px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(0,0,0,0.2);
+            color: rgba(255,255,255,0.3);
+            font-family: 'Sawarabi Mincho', serif;
+        }
+        .crest.earned {
+            background: #d4af37; /* Gold */
+            color: #2b1d0e;
+            border-color: #ffd700;
+            opacity: 1 !important;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(212,175,55,0.6);
+        }
+        .result-stars .crest {
+            width: 50px;
+            height: 50px;
+            font-size: 28px;
+            border-width: 3px;
+            margin: 0 10px;
+        }
+        .result-stars .crest.earned {
+            transform: scale(1.3);
+            box-shadow: 0 0 20px rgba(255,215,0,0.8);
+        }
+
+        /* Title Hammer Animation */
+        .title-visual {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .title-hammer {
+            position: relative;
+            width: 50px;
+            height: 22px;
+            background: #fbd8bc;
+            border: 2px solid #6b4226;
+            border-radius: 12px;
+            transform-origin: left center;
+            animation: title-hammering 0.8s infinite alternate ease-in-out;
+            margin-left: -30px; /* Offset to center the head better */
+        }
+        .title-hammer-head {
+            position: absolute;
+            top: -32px;
+            right: -20px;
+            width: 42px;
+            height: 18px;
+            background: linear-gradient(#777, #eee, #444);
+            border: 2px solid #222;
+            border-radius: 4px;
+        }
+        .title-hammer-head::after {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 35px;
+            background: #8e5d3e;
+            border: 1px solid #444;
+            border-radius: 2px;
+        }
+
+        @keyframes title-hammering {
+            0% { transform: rotate(-40deg); }
+            80% { transform: rotate(45deg); }
+            100% { transform: rotate(45deg); }
+        }
+
+        /* Settings Icon */
+        .settings-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255,255,255,0.4);
+            transition: transform 0.2s;
+        }
+        .settings-btn:active { transform: scale(0.9); }
+
+        /* Settings Modal */
+        #settings-modal {
+            z-index: 2000;
+        }
+        .settings-box {
+            background: #fff;
+            color: #333;
+            width: 85%;
+            max-width: 320px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .settings-item {
+            margin: 20px 0;
+            text-align: left;
+        }
+        .settings-item label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #8B5A2B;
+        }
+        .settings-item input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Stage Select Layout Adjustment */
+        #stage-select-screen {
+            padding-top: 60px; /* Space for settings btn */
+        }
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px; /* Reduced gap */
+            width: 100%;
+            max-width: 420px;
+            margin-bottom: 15px;
+        }
+        .stage-card {
+            aspect-ratio: 1;
+            padding: 5px;
+            font-size: 0.9em;
+        }
+        .stage-card .stage-num { font-size: 20px; }
+        .stage-card .stage-stars { font-size: 8px; }
+
+        /* Top Half (Clipping area for the screw so it goes "into" the wood) */
+        #work-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65%; /* 65% from top */
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* Screw */
+                #screw {
+            position: absolute;
+            left: 50%;
+            bottom: 0px; /* Base position on top of the board */
+            transform-origin: bottom center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 25; /* Between board-top and board-front */
+            will-change: transform;
+        }
+        #screw-head {
+            width: 70px;
+            height: 25px;
+            background: linear-gradient(to right, #cfcfcf, #ffffff 30%, #a0a0a0 80%, #707070);
+            border-radius: 8px 8px 3px 3px;
+            box-shadow: 
+                inset 0 -3px 5px rgba(0,0,0,0.4),
+                0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 200px;
+        }
+        #screw-thread {
+            width: 28px;
+            height: 180px;
+            background-color: #808080;
+            background-image: 
+                repeating-linear-gradient(
+                    -15deg,
+                    transparent,
+                    transparent 12px,
+                    rgba(0,0,0,0.4) 12px,
+                    rgba(0,0,0,0.4) 18px
+                ),
+                linear-gradient(to right, #808080, #c0c0c0 30%, #808080 80%, #505050);
+            border-radius: 0 0 5px 5px;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Board */
+                #board-top-surface {
+            position: absolute;
+            top: 65%;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background-color: var(--board-top) !important;
+            background-image: none !important;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            z-index: 30; /* Top layer of the board */
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+        }
+                #board-front {
+            position: absolute;
+            top: calc(65% + 30px);
+            left: 0;
+            width: 100%;
+            height: calc(35% - 20px);
+            background-color: var(--board-color-front);
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 15px,
+                rgba(0,0,0,0.05) 15px,
+                rgba(0,0,0,0.05) 30px
+            );
+            border-top: 2px solid #6b4226;
+            z-index: 20; /* Bottom layer */
+        }
+        
+        /* Interactive Layer */
+        #hit-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        /* Center Messages Area */
+        #center-ui {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            text-align: center;
+            z-index: 150;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Action Text (PERFECT, GOOD, MISS) */
+        .action-text {
+            font-size: 56px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-shadow: 
+                3px 3px 0 #fff, -3px -3px 0 #fff, 3px -3px 0 #fff, -3px 3px 0 #fff,
+                0 6px 15px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: scale(0.5) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .action-text.show {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .color-perfect { color: #FF3366; }
+        .color-good { color: #33CCFF; }
+        .color-miss { color: #888888; }
+
+        /* Boss Message Box */
+        .boss-msg {
+            background: #fff;
+            color: #333;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 3px solid var(--board-color-front);
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: absolute;
+            bottom: 170px; /* Position above character */
+            right: -20px;
+            width: 180px;
+            opacity: 0;
+            transform: translateY(10px) scale(0.8);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+            pointer-events: none;
+        }
+        .boss-msg::after { /* Speech bubble tail */
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            right: 40px;
+            border-width: 15px 10px 0;
+            border-style: solid;
+            border-color: var(--board-color-front) transparent transparent;
+        }
+        .boss-msg::before {
+            content: '親方';
+            position: absolute;
+            top: -15px;
+            left: 15px;
+            background: var(--board-color-front);
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 2px solid #fff;
+        }
+        .boss-msg.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Helper Instruction */
+        .instruction {
+            position: absolute;
+            bottom: 25%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            white-space: nowrap;
+            z-index: 150;
+            pointer-events: none;
+            animation: float-pulse 2s infinite ease-in-out;
+        }
+        @keyframes float-pulse {
+            0% { opacity: 0.7; transform: translateX(-50%) translateY(0); }
+            50% { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+            100% { opacity: 0.7; transform: translateX(-50%) translateY(0); }
+        }
+        /* Carpenter Character - Ojisan Upgrade */
+        #carpenter-container {
+            position: absolute;
+            top: 140px; /* Lowered to avoid settings btn */
+            right: 8%; /* Brought closer to center */
+            width: 120px;
+            height: 160px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .carpenter-head {
+            width: 55px;
+            height: 80px;
+            background: #fbd8bc;
+            border-radius: 40% 40% 50% 50%;
+            border: 2px solid #6b4226;
+            position: relative;
+            z-index: 2;
+        }
+
+        .carpenter-head::before { /* Hachimaki/Towel */
+            content: '';
+            position: absolute;
+            top: 10px; /* Lowered slightly since hair is gone */
+            left: -4px;
+            width: 63px;
+            height: 10px;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            border-bottom: 2px solid #ddd;
+            border-radius: 2px;
+            z-index: 6;
+            transform: rotate(-1deg);
+        }
+        /* Face Details */
+        .face-eye {
+            position: absolute;
+            top: 35px; /* Centered vertically */
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            z-index: 10;
+            animation: blink 4s infinite;
+        }
+        .face-eye.left { left: 14px; }
+        .face-eye.right { right: 14px; }
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+        .face-brow {
+            position: absolute;
+            top: 25px;
+            width: 15px;
+            height: 6px;
+            background: #444;
+            border-radius: 2px;
+            z-index: 10;
+        }
+        .face-brow.left { left: 10px; transform: rotate(15deg); } /* V-shape */
+        .face-brow.right { right: 10px; transform: rotate(-15deg); } /* V-shape */
+        .face-mustache {
+            position: absolute;
+            top: 54px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 10px;
+            background: #444; /* Black mustache */
+            z-index: 8;
+            /* Narrow Hachinoji shape */
+            clip-path: polygon(0 100%, 50% 40%, 100% 100%, 85% 100%, 50% 70%, 15% 100%);
+            border-radius: 2px;
+        }
+        .face-mouth {
+            position: absolute;
+            top: 64px; /* Slightly lowered */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 4px;
+            border-bottom: 2px solid #885544;
+            border-radius: 50%;
+            z-index: 8;
+        }
+        .face-blush {
+            position: absolute;
+            top: 35px;
+            width: 12px;
+            height: 8px;
+            background: rgba(255, 100, 100, 0.5);
+            border-radius: 50%;
+            filter: blur(2px);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .face-blush.left { left: 6px; }
+        .face-blush.right { right: 6px; }
+        .carpenter-success .face-blush {
+            opacity: 1;
+        }
+
+        .carpenter-body {
+            width: 80px;
+            height: 70px;
+            background: #001f3f; /* Formal Navy Happi */
+            border-radius: 12px 12px 0 0;
+            border: 2px solid #000;
+            position: relative;
+            margin-top: -8px;
+            /* overflow: hidden; */
+        }
+        .happi-collar {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 100%;
+            background: #111;
+            border-left: 2px solid #fff;
+            border-right: 2px solid #fff;
+        }
+        .happi-text {
+            position: absolute;
+            bottom: 8px;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 900;
+            opacity: 0.6;
+            font-family: 'Sawarabi Mincho', serif;
+        }
+
+        .carpenter-arm-right {
+            position: absolute;
+            top: 10px;
+            right: -25px;
+            width: 45px;
+            height: 18px;
+            background: #fbd8bc;
+            border: 2px solid #6b4226;
+            border-radius: 10px;
+            transform-origin: left center;
+            transform: rotate(-30deg);
+            animation: hammering 0.6s infinite alternate ease-in-out;
+            z-index: 10;
+        }
+        .hammer {
+            position: absolute;
+            top: -30px; /* Position head above hand */
+            right: -20px;
+            width: 44px;
+            height: 20px;
+            background: linear-gradient(to bottom, #777, #eee 40%, #bbb 60%, #444);
+            border: 1.5px solid #222;
+            border-radius: 4px;
+        }
+        .hammer::after { /* Handle (E) */
+            content: '';
+            position: absolute;
+            top: 18px; /* Connecting to bottom of head */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 9px;
+            height: 45px;
+            background: linear-gradient(to right, #8e5d3e, #b67b57, #6b4226);
+            border: 1px solid #444;
+            border-radius: 3px;
+        }
+        
+        @keyframes hammering {
+            0% { transform: rotate(-30deg); }
+            100% { transform: rotate(50deg); }
+        }
+
+        /* Rank System */
+        .rank-container {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .rank-label {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 2px;
+        }
+        .rank-badge {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255,204,0,0.5);
+        }
+        .rank-desc {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Full Screen Overlays */
+        .overlay-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Title Screen */
+        .title-logo {
+            font-size: 42px;
+            font-weight: 900;
+            color: #ffcc00;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5), 0 0 20px rgba(255,200,0,0.3);
+            margin-bottom: 40px;
+            transform: rotate(-2deg);
+        }
+
+        /* Stage Select Grid */
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .stage-card {
+            aspect-ratio: 1;
+            background: #444;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 3px solid #666;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .stage-card.unlocked {
+            background: #8b5a2b;
+            border-color: #DEB887;
+        }
+        .stage-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .stage-card .stage-num {
+            font-size: 24px;
+            font-weight: 900;
+        }
+        .stage-card .stage-stars {
+            display: flex;
+            font-size: 10px;
+            color: #ffcc00;
+        }
+
+        /* Result Screen */
+        .result-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .star-container {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .star {
+            font-size: 60px;
+            color: #333; /* Empty star */
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0.3;
+        }
+        .star.earned {
+            color: #ffcc00;
+            opacity: 1;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+            transform: scale(1.2);
+        }
+        .result-stats {
+            font-size: 20px;
+            margin: 15px 0;
+        }
+
+        /* Common Buttons */
+        .btn {
+            background: #ffcc00;
+            color: #333;
+            border: none;
+            padding: 12px 30px;
+            font-size: 20px;
+            font-weight: 900;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #cc9900;
+            margin: 10px;
+            transition: all 0.1s;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #fff;
+            box-shadow: 0 4px 0 #ccc;
+        }
+
+        /* Gameplay Stage UI */
+        #stage-header {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 100;
+        }
+        
+        /* Gimmick: Shake Effect */
+        .shake {
+            animation: screen-shake 0.1s infinite;
+        }
+        @keyframes screen-shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-1px, -2px) rotate(-1deg); }
+            40% { transform: translate(-3px, 0px) rotate(1deg); }
+            60% { transform: translate(3px, 2px) rotate(0deg); }
+            80% { transform: translate(1px, -1px) rotate(1deg); }
+            100% { transform: translate(-1px, 2px) rotate(-1deg); }
+        }
+
+        /* Gimmick: Fog Effect */
+        #fog {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(2px);
+            z-index: 90;
+            pointer-events: none;
+            display: none;
+        }
+
+        @keyframes star-spawn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="settings-btn" class="settings-btn" onclick="toggleSettings()">⚙️</div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="overlay-screen hidden">
+        <div class="settings-box">
+            <h2 style="margin-top:0; color:#8B5A2B;">設定</h2>
+            <div class="settings-item">
+                <label>BGM 音量</label>
+                <input type="range" id="bgm-volume-range" min="0" max="1" step="0.01" value="0.5" oninput="updateVolumes()">
+            </div>
+            <div class="settings-item">
+                <label>システム音 (効果音)</label>
+                <input type="range" id="sfx-volume-range" min="0" max="1" step="0.01" value="0.8" oninput="updateVolumes()">
+            </div>
+            <div class="settings-item">
+                <label>ネジ締め音 (モーター)</label>
+                <input type="range" id="motor-volume-range" min="0" max="1" step="0.01" value="0.8" oninput="updateVolumes()">
+            </div>
+            <button class="btn" style="width:100%; margin:20px 0 0;" onclick="toggleSettings()">とじる</button>
+        </div>
+    </div>
+
+    <!-- UI -->
+    <div id="header-ui" class="hidden">
+        <div class="score-panel">SCORE: <span id="score">0</span></div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            
+            <div id="combo-panel" class="combo-panel">COMBO <span id="combo">0</span></div>
+        </div>
+    </div>
+
+    <!-- Audio -->
+    <audio id="bgm" loop preload="auto">
+        <source src="https://archive.org/download/02-matsuri-taiko/02-matsuri-taiko.mp3?v=6" type="audio/mp3">
+    </audio>
+
+    <!-- Stage Info Header -->
+    <div id="stage-header" class="hidden">STAGE 1 - 入門</div>
+
+    <!-- Title Screen -->
+    <div id="title-screen" class="overlay-screen">
+        <div class="title-logo">ネジ締め職人<br>極限のツライチ</div>
+        
+        <div class="title-visual">
+            <div class="title-hammer">
+                <div class="title-hammer-head"></div>
+            </div>
+        </div>
+
+        <div class="rank-container">
+            <div class="rank-label">現在の称号</div>
+            <div id="title-rank-badge" class="rank-badge">アルバイト</div>
+            <div id="title-rank-desc" class="rank-desc">まだ道具の名もおぼつかない新人。</div>
+        </div>
+        <div class="title-buttons">
+            <button class="btn" onclick="startStage(1)">あそぶ</button>
+        </div>
+    </div>
+
+    <!-- Stage Select Screen -->
+    <div id="stage-select-screen" class="overlay-screen hidden">
+        <div class="rank-container" style="margin-bottom: 15px; width: 100%; max-width: 300px;">
+            <div id="select-rank-badge" class="rank-badge" style="font-size: 18px;">アルバイト</div>
+        </div>
+        <h2 class="result-title">ステージ選択</h2>
+        <div class="stage-grid" id="stage-grid">
+            <!-- Stages will be generated by JS -->
+        </div>
+        <div style="display:flex; justify-content:center; align-items:center; margin:10px;">
+            <button id="prev-page-btn" class="btn btn-secondary" style="padding: 5px 15px; font-size:14px;" onclick="changePage(-1)">前へ</button>
+            <span id="page-indicator" style="margin: 0 20px; font-weight:bold;">1 / 2</span>
+            <button id="next-page-btn" class="btn btn-secondary" style="padding: 5px 15px; font-size:14px;" onclick="changePage(1)">次へ</button>
+        </div>
+        <button class="btn btn-secondary" onclick="showTitle()">戻る</button>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="overlay-screen hidden">
+        <h2 class="result-title" id="result-title">CLEAR!</h2>
+        <div class="result-stars" id="result-stars">
+            <div id="crest-1" class="crest">匠</div>
+            <div id="crest-2" class="crest">匠</div>
+            <div id="crest-3" class="crest">匠</div>
+        </div>
+        <div class="result-stats">
+            <div>SCORE: <span id="final-score">0</span></div>
+        </div>
+        <div class="rank-container" style="width: 100%; max-width: 300px; margin-bottom: 20px;">
+            <div class="rank-label">到達した職人ランク</div>
+            <div id="result-rank-badge" class="rank-badge">見習い大工</div>
+        </div>
+        <div id="result-buttons">
+            <button class="btn" id="next-stage-btn" onclick="nextStage()">次へ進む</button>
+            <button class="btn btn-secondary" id="retry-btn" onclick="retryStage()">再挑戦</button>
+            <button class="btn btn-secondary" onclick="showStageSelect()">ステージ選択</button>
+        </div>
+    </div>
+
+    <!-- Gimmick layers -->
+    <div id="fog"></div>
+
+    <!-- Center Feedback -->
+    <div id="center-ui">
+        <div id="action-text" class="action-text"></div>
+    </div>
+
+    <!-- Instruction -->
+    <div id="instruction" class="instruction">画面を長押ししてネジを回す<br>ツライチで離せ！</div>
+
+    <!-- Carpenter in background (Moved outside work-area) -->
+        <div id="carpenter-container">
+            <div id="boss-msg" class="boss-msg"></div>
+            <div class="carpenter-head">
+                <div class="face-brow left"></div>
+                <div class="face-brow right"></div>
+                <div class="face-eye left"></div>
+                <div class="face-eye right"></div>
+                <div class="face-mustache"></div>
+                <div class="face-mouth"></div>
+                <div class="face-blush left"></div>
+                <div class="face-blush right"></div>
+            </div>
+        <div class="carpenter-body">
+            <div class="happi-collar"></div>
+            <div class="happi-text">匠</div>
+            <div class="carpenter-arm-right">
+                <div class="hammer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gameplay Area -->
+    <div id="work-area">
+        <div id="screw">
+            <div id="screw-head"></div>
+            <div id="screw-thread"></div>
+        </div>
+    </div>
+
+    <!-- Board -->
+    <div id="board-top-surface"></div>
+    <div id="board-front"></div>
+
+    <!-- Touch Input Area -->
+    <div id="hit-area"></div>
+</div>
+
+<script>
+    // Audio Context Setup (Simulated Motor/Chimes)
+    let audioCtx = null;
+    let motorOsc = null;
+    let motorGain = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playMotor() {
+        if (!audioCtx) return;
+        motorOsc = audioCtx.createOscillator();
+        motorGain = audioCtx.createGain();
+        motorOsc.type = 'sawtooth';
+        motorOsc.frequency.setValueAtTime(60, audioCtx.currentTime); 
+        motorGain.gain.setValueAtTime(0.1 * saveData.motorVolume, audioCtx.currentTime);
+        motorOsc.connect(motorGain);
+        motorGain.connect(audioCtx.destination);
+        motorOsc.start();
+    }
+
+    function stopMotor() {
+        if (motorGain && motorOsc) {
+            motorGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            motorOsc.stop(audioCtx.currentTime + 0.1);
+            motorOsc = null;
+            motorGain = null;
+        }
+    }
+
+    function playEffect(type) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'perfect') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(1600, now + 0.1);
+            gain.gain.setValueAtTime(0.3 * saveData.sfxVolume, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        } else if (type === 'good') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(400, now);
+            gain.gain.setValueAtTime(0.2 * saveData.sfxVolume, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (type === 'miss') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+            gain.gain.setValueAtTime(0.3 * saveData.sfxVolume, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+    }
+
+    // Haptics
+    // --- Audio ---
+    const bgm = document.getElementById('bgm');
+    let bgmMuted = false;
+    let bgmStarted = false;
+    let synthLoopId = null;
+
+    function initBGM() {
+        if (!bgmStarted) {
+            bgm.volume = saveData.bgmVolume;
+            const playPromise = bgm.play();
+            
+            // Safety timeout: if nothing plays in 3 seconds, force synth
+            setTimeout(() => {
+                if (!bgmStarted || bgm.paused) {
+                    console.log("BGM timeout, forcing synth");
+                    startSynthBGM();
+                    bgmStarted = true;
+                }
+            }, 3000);
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    console.log("BGM started");
+                    bgmStarted = true;
+                }).catch(error => {
+                    console.log("External BGM load failed, switching to synth");
+                    startSynthBGM();
+                    bgmStarted = true;
+                });
+            } else {
+                startSynthBGM();
+                bgmStarted = true;
+            }
+        }
+    }
+
+    // Fallback Taiko-style Synthesizer
+    function startSynthBGM() {
+        if (synthLoopId) return;
+        let step = 0;
+        
+        synthLoopId = setInterval(() => {
+            if (bgmMuted) return;
+            // Rhythmic Taiko Pattern
+            const pattern = [1, 0, 1, 1, 0, 1, 0, 0]; // Simple 8-beat
+            if (pattern[step % 8]) {
+                const isStrong = step % 4 === 0;
+                playDrum(isStrong ? 80 : 60, isStrong ? 0.3 : 0.15, 0.4);
+            }
+            if (step % 16 === 7 || step % 16 === 15) {
+                playTone(800, 0.05, 0.1); // Stick click (Ka)
+            }
+            step++;
+        }, 200); 
+    }
+
+    function playDrum(freq, vol, duration) {
+        if (!audioCtx || bgmMuted) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
+        gain.gain.setValueAtTime(vol * saveData.bgmVolume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playTone(freq, vol, duration) {
+        if (!audioCtx || bgmMuted) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        // Synth BGM rhythm tones should use bgmVolume
+        gain.gain.setValueAtTime(vol * saveData.bgmVolume, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function toggleBGM() {
+        bgmMuted = !bgmMuted;
+        bgm.muted = bgmMuted;
+        if (bgmMuted) {
+            bgm.pause();
+        } else if (bgmStarted) {
+            bgm.play().catch(() => startSynthBGM());
+        }
+        document.getElementById('bgm-btn').classList.toggle('muted', bgmMuted);
+        document.getElementById('bgm-btn').innerText = bgmMuted ? 'OFF' : 'Music';
+    }
+
+    function initSound() {
+        initAudio();
+        initBGM();
+    }
+
+    function diagnoseSound() {
+        initSound();
+        // Play a diagnostic beep to confirm AudioContext is working
+        playTone(440, 0.2, 0.5); // A4 note
+        const helpText = document.getElementById('sound-help');
+        helpText.innerText = "テスト音再生中... BGMボタンも確認して下さい";
+        setTimeout(() => {
+            helpText.innerText = "音が鳴らない場合はここをタップ（テスト音再生）";
+        }, 3000);
+    }
+
+    function haptic(pattern) {
+        if (navigator.vibrate) {
+            navigator.vibrate(pattern);
+        }
+    }
+
+    function toggleSettings() {
+        const modal = document.getElementById('settings-modal');
+        const isHidden = modal.classList.contains('hidden');
+        if (isHidden) {
+            modal.classList.remove('hidden');
+            document.getElementById('bgm-volume-range').value = saveData.bgmVolume;
+            document.getElementById('sfx-volume-range').value = saveData.sfxVolume;
+            document.getElementById('motor-volume-range').value = saveData.motorVolume;
+        } else {
+            modal.classList.add('hidden');
+            saveGame();
+        }
+    }
+
+    function updateVolumes() {
+        saveData.bgmVolume = parseFloat(document.getElementById('bgm-volume-range').value);
+        saveData.sfxVolume = parseFloat(document.getElementById('sfx-volume-range').value);
+        saveData.motorVolume = parseFloat(document.getElementById('motor-volume-range').value);
+        bgm.volume = saveData.bgmVolume;
+    }
+
+    // Boss Messages Dictionary
+    const bossDialogues = {
+        start: ["さあ、最高のツライチ、見せてみろ！", "図面通りにピタッと頼むよ！", "集中しろよ！"],
+        perfect: ["神業！完璧なツライチだ！", "ピタアァァァッ！！", "芸術的だ…！惚れ惚れするよ。"],
+        good: ["惜しい！もう少しだったね！", "悪くない、これなら許容範囲だ。", "あと髪の毛一本分だな。"],
+        missDeep: ["おいおい、締めすぎ！板が割れちまったよ！", "力入れすぎだ！"],
+        missShallow: ["浮いてる浮いてる！服が引っかかるぞ！", "こりゃ明日の朝礼で怒られるやつだ…。"]
+    };
+
+    function getRandom(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // --- Stage Data ---
+    const STAGES = [];
+    (function generateStages() {
+        const gimmicks = [null, "ACCELERATE", "SHAKE", "FOG", "RANDOM_SPEED", "SLIP"];
+        for (let i = 1; i <= 100; i++) {
+            let gimmick = null;
+            if (i > 3) gimmick = gimmicks[i % gimmicks.length];
+            
+            // Scaled complexity
+            const length = 150 + (i * 5); 
+            const speed = 4 + (i * 0.1);
+            
+            STAGES.push({
+                id: i,
+                name: `現場 #${i}`,
+                length: Math.min(length, 600),
+                speed: Math.min(speed, 12),
+                count: 1,
+                stars: [200, 500, 1000], // Keep simple for 1-screw play
+                gimmick: gimmick
+            });
+        }
+    })();
+
+    const RANKS = [
+        { min: 1, max: 10, title: "アルバイト", desc: "まだ道具の名もおぼつかない新人。" },
+        { min: 11, max: 20, title: "見習い大工", desc: "親方の後ろ姿を追う毎日。" },
+        { min: 21, max: 30, title: "駆け出し職人", desc: "現場の空気にようやく慣れてきた。" },
+        { min: 31, max: 40, title: "一人前大工", desc: "道具が体の一部になり始める。" },
+        { min: 41, max: 50, title: "中堅のエース", desc: "難しい現場も任せられる頼もしい存在。" },
+        { min: 51, max: 60, title: "現場監督", desc: "全体の流れが見える、現場の要。" },
+        { min: 61, max: 70, title: "熟練の棟梁", desc: "狂いのない仕事。若い衆の憧れ。" },
+        { min: 71, max: 80, title: "精密の鬼", desc: "コンマミリのズレも許さないストイックな域。" },
+        { min: 81, max: 90, title: "ツライチの魔術師", desc: "触れても継ぎ目が分からない「神の指先」。" },
+        { min: 91, max: 100, title: "伝説の匠", desc: "業界でその名を知らぬ者はいない至高の存在。" }
+    ];
+
+    let saveData = {
+        unlockedStage: 1,
+        bestStars: {}, // { stageId: starCount }
+        bgmVolume: 0.6,
+        sfxVolume: 0.8,
+        motorVolume: 0.8
+    };
+
+    function loadGame() {
+        const saved = localStorage.getItem('screw_master_save');
+        if (saved) {
+            const data = JSON.parse(saved);
+            Object.assign(saveData, data);
+        }
+    }
+
+    function saveGame() {
+        localStorage.setItem('screw_master_save', JSON.stringify(saveData));
+    }
+
+    // --- Core UI Elements ---
+    const screw = document.getElementById('screw');
+    const screwHead = document.getElementById('screw-head');
+    const screwThread = document.getElementById('screw-thread');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    const comboPanel = document.getElementById('combo-panel');
+    const actionText = document.getElementById('action-text');
+    const bossMsgBox = document.getElementById('boss-msg');
+    const instruction = document.getElementById('instruction');
+    const hitArea = document.getElementById('hit-area');
+    const stageHeader = document.getElementById('stage-header');
+
+    // --- Game State ---
+    let score = 0;
+    let combo = 0;
+    let state = 'TITLE'; // TITLE, STAGE_SELECT, PLAYING, RESULT
+    let currentStage = null;
+    let screwCountInStage = 0;
+    let currentStagePage = 0; // 0 for stages 1-10, 1 for stages 11-20
+    
+    // Physics / Pos variables
+    let targetY = 180; 
+    let currentY = 0; 
+    let currentRot = 0;
+    let turnSpeed = 4; // base speed
+    let currentSpeed = 4;
+    let rotSpeed = 20; 
+    let animId = null;
+
+    function applyTransforms() {
+        // Main wrapper moves down
+        screw.style.transform = `translate(-50%, ${currentY}px)`;
+        
+        // Barber-pole effect: animate the background-position vertically
+        screwThread.style.backgroundPosition = `0px ${-currentRot}px, 0px 0px`;
+        
+    }
+
+    function showUI(text, typeClass, bossText) {
+        actionText.innerText = text;
+        actionText.className = `action-text color-${typeClass} show`;
+        bossMsgBox.innerText = bossText;
+        bossMsgBox.className = 'boss-msg show';
+    }
+
+    function hideUI() {
+        actionText.className = 'action-text';
+        bossMsgBox.className = 'boss-msg';
+    }
+
+    function updateScoreDisplay() {
+        scoreEl.innerText = score;
+        if (combo >= 2) {
+            comboEl.innerText = combo;
+            comboPanel.classList.add('active');
+        } else {
+            comboPanel.classList.remove('active');
+        }
+    }
+
+    function getRank() {
+        const stage = saveData.unlockedStage;
+        return RANKS.find(r => stage >= r.min && stage <= r.max) || RANKS[RANKS.length-1];
+    }
+
+    function updateRankDisplays() {
+        const rank = getRank();
+        const rankIdx = RANKS.indexOf(rank) + 1;
+        
+        // Update App Theme
+        const app = document.getElementById('app');
+        app.className = ''; // Reset
+        app.classList.add(`theme-rank-${rankIdx}`);
+
+        // Title
+        const titleBadge = document.getElementById('title-rank-badge');
+        const titleDesc = document.getElementById('title-rank-desc');
+        if (titleBadge) titleBadge.innerText = rank.title;
+        if (titleDesc) titleDesc.innerText = rank.desc;
+
+        // Select
+        const selectBadge = document.getElementById('select-rank-badge');
+        if (selectBadge) selectBadge.innerText = `職人ランク: ${rank.title}`;
+
+        // Result
+        const resultBadge = document.getElementById('result-rank-badge');
+        if (resultBadge) resultBadge.innerText = rank.title;
+    }
+
+    // --- Screen Management ---
+    function hideAllScreens() {
+        document.getElementById('title-screen').classList.add('hidden');
+        document.getElementById('stage-select-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('header-ui').classList.add('hidden');
+        document.getElementById('stage-header').classList.add('hidden');
+        instruction.classList.add('hidden');
+        document.getElementById('fog').style.display = 'none';
+        document.getElementById('app').classList.remove('shake');
+    }
+
+    function showTitle() {
+        hideAllScreens();
+        updateRankDisplays();
+        document.getElementById('title-screen').classList.remove('hidden');
+        state = 'TITLE';
+    }
+
+    function showStageSelect() {
+        hideAllScreens();
+        updateRankDisplays();
+        renderStageGrid();
+        document.getElementById('stage-select-screen').classList.remove('hidden');
+        state = 'STAGE_SELECT';
+    }
+
+    function changePage(dir) {
+        const newPage = currentStagePage + dir;
+        if (newPage >= 0 && newPage <= 9) { // 10 pages total (0-9)
+            currentStagePage = newPage;
+            renderStageGrid();
+        }
+    }
+
+    function renderStageGrid() {
+        const grid = document.getElementById('stage-grid');
+        grid.innerHTML = '';
+        const startIdx = currentStagePage * 10;
+        const endIdx = startIdx + 10;
+        const displayStages = STAGES.slice(startIdx, endIdx);
+
+        // Determine current page theme
+        const pageThemeIdx = currentStagePage + 1;
+
+        displayStages.forEach(stg => {
+            const isUnlocked = stg.id <= saveData.unlockedStage;
+            const starCount = saveData.bestStars[stg.id] || 0;
+            
+            const card = document.createElement('div');
+            card.className = `stage-card ${isUnlocked ? 'unlocked' : 'locked'} theme-${pageThemeIdx}`;
+            card.onclick = isUnlocked ? () => startStage(stg.id) : null;
+            
+            let starsHtml = '';
+            for(let i=0; i<3; i++) {
+                starsHtml += `<div class="crest ${i < starCount ? 'earned' : ''}">匠</div>`;
+            }
+
+            card.innerHTML = `
+                <div class="stage-num">${stg.id}</div>
+                <div class="stage-stars">${starsHtml}</div>
+                ${!isUnlocked ? '<div style="font-size:10px">LOCKED</div>' : ''}
+            `;
+            grid.appendChild(card);
+        });
+
+        // Update paging UI
+        document.getElementById('page-indicator').innerText = `${currentStagePage + 1} / 10`;
+        document.getElementById('prev-page-btn').style.visibility = (currentStagePage === 0) ? 'hidden' : 'visible';
+        
+        // Next page button: only if stage at end of current page is unlocked
+        const lastStageOnPage = (currentStagePage + 1) * 10;
+        const nextUnlocked = saveData.unlockedStage > lastStageOnPage;
+        
+        const nextBtn = document.getElementById('next-page-btn');
+        if (currentStagePage === 9 || !nextUnlocked) {
+            nextBtn.style.visibility = 'hidden';
+        } else {
+            nextBtn.style.visibility = 'visible';
+        }
+    }
+
+    function startStage(id) {
+        hideAllScreens();
+        currentStage = STAGES.find(s => s.id === id);
+        score = 0;
+        combo = 0;
+        screwCountInStage = 0;
+        state = 'PLAYING';
+        
+        updateScoreDisplay();
+        document.getElementById('header-ui').classList.remove('hidden');
+        stageHeader.classList.remove('hidden');
+        stageHeader.innerText = `STAGE ${currentStage.id} - ${currentStage.name}`;
+        
+        // Initial boss msg
+        bossMsgBox.innerText = getRandom(bossDialogues.start);
+        bossMsgBox.className = 'boss-msg show';
+        
+        spawnNextScrew();
+    }
+
+    function showResult() {
+        state = 'RESULT';
+        hideAllScreens();
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = score;
+
+        // Calculate stars
+        let earnedStars = 0;
+        currentStage.stars.forEach((threshold, idx) => {
+            if (score >= threshold) earnedStars = idx + 1;
+        });
+
+        // Update save data
+        const oldStars = saveData.bestStars[currentStage.id] || 0;
+        if (earnedStars > oldStars) {
+            saveData.bestStars[currentStage.id] = earnedStars;
+        }
+        
+        // Unlock next stage if earned >= 2 stars
+        if (earnedStars >= 2 && currentStage.id < 100) {
+            if (saveData.unlockedStage <= currentStage.id) {
+                saveData.unlockedStage = currentStage.id + 1;
+            }
+        }
+        saveGame();
+        updateRankDisplays();
+
+        // Animate crests
+        for(let i=1; i<=3; i++) {
+            const crestEl = document.getElementById(`crest-${i}`);
+            crestEl.classList.remove('earned');
+            if (i <= earnedStars) {
+                setTimeout(() => crestEl.classList.add('earned'), 300 * i);
+            }
+        }
+
+        // Button & Title visibility based on clear status
+        const nextBtn = document.getElementById('next-stage-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const resultTitle = document.getElementById('result-title');
+
+        if (earnedStars >= 2) {
+            resultTitle.innerText = "STAGE CLEAR!";
+            retryBtn.classList.add('hidden');
+            if (currentStage.id < 10) {
+                nextBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.add('hidden');
+            }
+        } else {
+            resultTitle.innerText = "STAGE FAILED";
+            nextBtn.classList.add('hidden');
+            retryBtn.classList.remove('hidden');
+        }
+    }
+
+    function nextStage() {
+        startStage(currentStage.id + 1);
+    }
+
+    function retryStage() {
+        startStage(currentStage.id);
+    }
+
+    function evaluate() {
+        stopMotor();
+        state = 'RESULT'; // Block further input during evaluation delay
+        const diff = Math.abs(currentY - targetY);
+        let resultType = '';
+
+        if (diff <= 3) {
+            resultType = 'perfect';
+            combo++;
+            score += 1000 + (combo * 100);
+            currentY = targetY; 
+            applyTransforms();
+            showUI('PERFECT!', 'perfect', getRandom(bossDialogues.perfect));
+            playEffect('perfect');
+            haptic([30, 40, 30]);
+            
+            const carpenter = document.getElementById('carpenter-container');
+            carpenter.classList.add('carpenter-success');
+            setTimeout(() => carpenter.classList.remove('carpenter-success'), 500);
+        } else if (diff <= 15) {
+            resultType = 'good';
+            combo++;
+            score += 500;
+            showUI('GOOD!', 'good', getRandom(bossDialogues.good));
+            playEffect('good');
+            haptic([40]);
+        } else {
+            resultType = 'miss';
+            combo = 0;
+            const msg = currentY > targetY ? getRandom(bossDialogues.missDeep) : getRandom(bossDialogues.missShallow);
+            showUI('MISS...', 'miss', msg);
+            playEffect('miss');
+            haptic([50, 50, 50]);
+        }
+
+        updateScoreDisplay();
+        screwCountInStage++;
+
+        // Reset per-screw gimmick state
+        isTurning = false;
+
+        if (screwCountInStage >= currentStage.count) {
+            setTimeout(showResult, 2000);
+        } else {
+            setTimeout(spawnNextScrew, 2000);
+        }
+    }
+
+    let isTurning = false;
+
+    function gameLoop() {
+        if (state !== 'PLAYING' || !isTurning) return;
+
+        // Gimmick: Accelerate
+        if (currentStage.gimmick === 'ACCELERATE') {
+            currentSpeed += 0.005;
+        }
+
+        // Gimmick: Random Speed
+        if (currentStage.gimmick === 'RANDOM_SPEED' && Math.random() < 0.05) {
+            currentSpeed = turnSpeed * (0.5 + Math.random());
+        }
+
+        currentY += currentSpeed;
+        currentRot += rotSpeed;
+        
+        // Gimmick: Slip
+        if (currentStage.gimmick === 'SLIP' && Math.random() < 0.02) {
+            currentY -= 15; // Sudden slip back
+        }
+
+        applyTransforms();
+
+        // Auto-stop if way past target
+        if (currentY > targetY + 50) {
+            isTurning = false;
+            stopMotor();
+            evaluate();
+            return;
+        }
+
+        animId = requestAnimationFrame(gameLoop);
+    }
+
+    function spawnNextScrew() {
+        if (state !== 'PLAYING') return;
+        
+        hideUI();
+        instruction.classList.remove('hidden');
+        
+        // Use stage parameters
+        targetY = currentStage.length;
+        turnSpeed = currentStage.speed;
+        currentSpeed = turnSpeed;
+        
+        currentY = -(targetY + 50);
+        currentRot = 0;
+        
+        // Thread height adjustment
+        screwThread.style.height = targetY + 'px';
+        
+        // Gimmick Reset
+        document.getElementById('app').classList.remove('shake');
+        document.getElementById('fog').style.display = 'none';
+        
+        if (currentStage.gimmick === 'FOG') {
+            document.getElementById('fog').style.display = 'block';
+        }
+        if (currentStage.gimmick === 'SHAKE') {
+            document.getElementById('app').classList.add('shake');
+        }
+
+        applyTransforms();
+        isTurning = false;
+    }
+
+    // Input Listeners
+    ['pointerdown', 'touchstart', 'click'].forEach(evtType => {
+        window.addEventListener(evtType, () => initSound(), { once: false });
+    });
+
+    hitArea.addEventListener('pointerdown', (e) => {
+        if (state !== 'PLAYING') return;
+        e.preventDefault();
+        
+        if (state === 'PLAYING' && !isTurning) {
+            isTurning = true;
+            hideUI(); 
+            instruction.classList.add('hidden');
+            playMotor();
+            haptic([10]);
+            animId = requestAnimationFrame(gameLoop);
+        }
+    });
+
+    const stopTurning = (e) => {
+        e.preventDefault();
+        if (state === 'PLAYING' && isTurning) {
+            isTurning = false;
+            stopMotor();
+            evaluate();
+        }
+    };
+
+    hitArea.addEventListener('pointerup', stopTurning);
+    hitArea.addEventListener('pointercancel', stopTurning);
+    hitArea.addEventListener('pointerleave', stopTurning);
+
+    // Context Menu disable for long press
+    hitArea.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Init
+    window.onload = () => {
+        updateRankDisplays();
+        setTimeout(spawnNextScrew, 500);
+    };
+
+</script>
+</body>
+</html>
