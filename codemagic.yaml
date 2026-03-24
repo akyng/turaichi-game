@@ -14,16 +14,22 @@ workflows:
       - name: Install Expo CLI and EAS CLI
         script: |
           npm install -g expo-cli eas-cli
-      - name: Prebuild Android project
+      - name: Build Android App Bundle (AAB) using EAS
         script: |
-          npx expo prebuild --platform android
-      - name: Build Android App Bundle (AAB)
-        script: |
-          cd android
-          chmod +x gradlew
-          ./gradlew bundleRelease
+          # Copy secret files from Codemagic environment variables to the project root
+          # Ensure these variables are names accurately in Codemagic UI
+          if [ ! -z "$CREDENTIALS_JSON_PATH" ]; then
+            cp "$CREDENTIALS_JSON_PATH" ./credentials.json
+          fi
+          if [ ! -z "$TURAICHI_KEYSTORE_PATH" ]; then
+            cp "$TURAICHI_KEYSTORE_PATH" ./turaichi.keystore
+          fi
+          
+          # EAS build --local will use credentials.json and the keystore file.
+          eas build --platform android --local --profile production --non-interactive
     artifacts:
-      - android/app/build/outputs/bundle/release/*.aab
+      - ./*.aab
+      - ./*.apk
     publishing:
       email:
         recipients:
