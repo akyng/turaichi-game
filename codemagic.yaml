@@ -16,13 +16,12 @@ workflows:
           npm install -g expo-cli eas-cli
       - name: Build Android App Bundle (AAB) using EAS
         script: |
-          # Copy secret files from Codemagic environment variables to the project root
-          # Ensure these variables are names accurately in Codemagic UI
-          if [ ! -z "$CREDENTIALS_JSON_PATH" ]; then
-            cp "$CREDENTIALS_JSON_PATH" ./credentials.json
+          # Decode base64 environment variables back into files
+          if [ ! -z "$CREDENTIALS_JSON_BASE64" ]; then
+            echo "$CREDENTIALS_JSON_BASE64" | base64 --decode > ./credentials.json
           fi
-          if [ ! -z "$TURAICHI_KEYSTORE_PATH" ]; then
-            cp "$TURAICHI_KEYSTORE_PATH" ./turaichi.keystore
+          if [ ! -z "$TURAICHI_KEYSTORE_BASE64" ]; then
+            echo "$TURAICHI_KEYSTORE_BASE64" | base64 --decode > ./turaichi.keystore
           fi
           
           # EAS build --local will use credentials.json and the keystore file.
